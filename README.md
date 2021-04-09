@@ -118,13 +118,20 @@ serve -s build // 웹 콘텐츠 root 경로 지정
   - 너무 많아지면 관리도 어려움
 - 해당 클래스만 외부에서 사용할 수 있게 허용 export default ~~~~;
 
-## 진행 대기
 ## state
 ### State 소개
+- props는 사용자가 컴포넌트를 사용하는 입장에서 중요
+- State는 props의 값에 따라 내부의 구현에 따라 필요한 데이터
 
 ### State 사용
+- props 값이 하드코딩 되어있음
+- 이 값(title="WEB")을 State로 만들고, State값을 하위 컴포넌트에 props로 전달함으로 개선
+- 생성자(constructor)를 통해 Component(State)값을 초기화
+- 실행순서 constructor -> render 
 
 ### key
+- State 여러개 설정 및 반복문으로 lists 생성
+- lists 자동 생성 시, key 값 입력 해주어야함
 
 ## 이벤트
 ### 이벤트 state props 그리고 render 함수

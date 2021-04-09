@@ -2,10 +2,11 @@ import React, { Component } from 'react';
 
 class Subject extends Component {
   render() {
+    var data = this.props.data;
     return (
       <header>
-        <h2>{this.props.title}</h2>
-        {this.props.sub}
+        <h2>{data.title}</h2>
+        {data.sub}
       </header>
     );
   }
