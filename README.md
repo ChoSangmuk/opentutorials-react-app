@@ -90,7 +90,7 @@ serve -s build // 웹 콘텐츠 root 경로 지정
 - 유지보수가 불편
 
 ### 컴포넌트 만들기 1 & 2
-- 컴포넌트는 정리 정돈 상자
+- 컴포넌트는 정리 정돈 상자, 사용자 정의 태그
 - test.html -> react로 바꾸기
 - header을 Subject라는 이름의 태그(컴포넌트)로 바꾸기
 - App.js에 컴포넌트 만드는 코드(템플릿)가 있으니 참고
@@ -98,12 +98,25 @@ serve -s build // 웹 콘텐츠 root 경로 지정
 - class 부분 코드는 자바스크립트가 아님(거의 비슷)
 - 태그를 문자열로 표현해야하지만 까다로움으로 페이스북에서 JSX 포맷을 만들어 지정
 - CRA가 알아서 JS로 컨버팅해줌
+- 컴포넌트는 클래스 형과 함수형이 있으며, 차이점이 존재
 
 ### props
-- 컴포넌트를 공유하여 사용할 수 있음
+- 컴포넌트들 간의 데이터를 공유(상위 -> 하위)하여 사용할 수 있음
 - 태그에서는 속성(attribute) 
 - 컴포넌트에서는 프롭스(props)이라는 차이점으로 각각의 컴포넌트에 의미를 전달할 수 있음 -> 마치 함수의 파라미터 처럼...
-- 사용법은 {this.props.name} 로 사용!
+- 사용법은 하위 컴포넌트에서 {this.props.name} 로 사용!
+- props의 default 값을 설정할 수 있음
+```js
+class MyComponent extends Component {
+  static defaultProps = {
+    name : 'default_value'
+  }
+}
+// 혹은
+MyComponent.defaultProps = {
+  name: 'default_value'
+};
+```
 
 ### React Developer Tools
 - 설명서(스펙) 잘 읽기
@@ -122,10 +135,12 @@ serve -s build // 웹 콘텐츠 root 경로 지정
 ### State 소개
 - props는 사용자가 컴포넌트를 사용하는 입장에서 중요
 - State는 props의 값에 따라 내부의 구현에 따라 필요한 데이터
+- 컴포넌트간 데이터를 주고 받는 방법 및 컴포넌트 내에서 사용(읽기)하는 법!
 
 ### State 사용
 - props 값이 하드코딩 되어있음
 - 이 값(title="WEB")을 State로 만들고, State값을 하위 컴포넌트에 props로 전달함으로 개선
+- 상위 State로 전달, 하위에 props로 사용
 - 생성자(constructor)를 통해 Component(State)값을 초기화
 - 실행순서 constructor -> render 
 
@@ -135,16 +150,45 @@ serve -s build // 웹 콘텐츠 root 경로 지정
 
 ## 이벤트
 ### 이벤트 state props 그리고 render 함수
+- 애플리케이션을 조금 더 역동적으로 만들어 줌
+- 목표 : 단순 데이터 전달이 아니라 사용자와의 상호작용!
+  - 이벤트 발생 시, App 컴포넌트의 state가 변경 
+  - 변경된 state가 props로 전달됨으로써 동적으로 애플리케이션이 변경
+- props, state가 변경될 시, 해당 state를 가지는 Component의 render가 재실행됨 
+  - 화면이 다시 그려짐
 
 ### 이벤트 설치
+- 이벤트를 발생시키려면 이벤트를 만들어야함(설치)
+- a 태그를 클릭시 해당 주소로 이동하는 것이 본래 a 태그의 역활
+  - react에선 페이지 전체가 리로딩(랜더링)이 아닌 해당 이벤트 관련 내용만 변경을 원함
+  - 기존에는 onclick 사용, react에서는 onClick={funcition()} 이라는 이벤트=함수를 사용
+  - preventDefault로 기본적인 동작(이벤트)을 방지
 
 ### 이벤트에서 state 변경하기
+- this.state.mode = "welcome" 으로 state 변경?
+  - 이벤트 내에서 this를 바로 사용 시, 컴포넌트를 가르키는 것이 아니라 아무런 값이 셋팅되어있지 않음
+  - bind(this) 사용하여 컴포넌트를 가르키게함
+- 그러나 이렇게 해도 안됨! 이유? 리액트는 이런 방법 사용 시, state 값이 변경된 것을 모름
+  - 리액트가 원하는 방법으로 state를 변경해주어야함!
+  - this.setState() 함수를 사용하여 state를 변경
 
 ### 이벤트 bind 함수 이해하기
+- bind : 엮다, 묶다
+- render안에서 this는 render함수가 속해있는 컴포넌트 자체를 가르킴!
+- 함수 안에서 this는 아무 값도 없음
+- bind를 통해 this를 연결해주자
+- var C = A.bind(B) 
+  - A라는 함수 안에서 this는 B가 되도록 연결한 함수 C를 새롭게 생성
 
 ### 이벤트 setState 함수 이해하기
+- state 값의 변경 시 직접 변경? VS setState 사용?
+  - 생성자 실행 시에는 직접 변경해도됨
+  - 이미 컴포넌트가 끝난 시점에서는 안됨 -> 리액트 모르게 바꾼셈! (변경되기는 함...)
+  - setState를 통해 객체 형태로 값을 전달해 주어야함 
 
 ### 컴포넌트 이벤트 만들기 1
+- 이벤트의 단순 사용이 아닌 직접 이벤트를 만들어 보기
+- 컴포넌트 사용 시, 데이터를 전달할 뿐만 아니라 진행할 이벤트도 프롭스를 통해 전달할 수 있음
 
 ### 컴포넌트 이벤트 만들기 2
 
@@ -181,4 +225,12 @@ serve -s build // 웹 콘텐츠 root 경로 지정
 ## 수업을 마치며
 
 ## 읽을 거리
-- nothing
+- props 와 state 차이
+  - https://velopert.com/3629
+  - https://studyingych.tistory.com/52
+
+- 클래스, 함수 컴포넌트의 차이
+  - https://velog.io/@sdc337dc/0.%ED%81%B4%EB%9E%98%EC%8A%A4%ED%98%95-%EC%BB%B4%ED%8F%AC%EB%84%8C%ED%8A%B8
+
+- 참고할만한 링크
+ - https://velopert.com/
