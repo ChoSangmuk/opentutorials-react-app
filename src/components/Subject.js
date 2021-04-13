@@ -1,12 +1,11 @@
-import React, { Component } from 'react'; 
+import React, { Component } from 'react';
 
 class Subject extends Component {
   render() {
-    console.log("Subject render")
     var data = this.props.data;
     return (
       <header>
-        <h2><a href="/" onClick={function(e){
+        <h2><a href="/" onClick={function (e) {
           e.preventDefault()
           this.props.onClickComponent()
         }.bind(this)}>{data.title}</a></h2>
