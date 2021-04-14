@@ -208,7 +208,7 @@ MyComponent.defaultProps = {
 
 - 하위 컴포넌트에게 데이터 전달 시, 프롭스를 사용
 - 상위 컴포넌트에게 데이터 전달 시, 이벤트를 사용 및 구현
-  - 실행 시 상위 컴포넌트의 state값을 변경
+  - 실행 시 상위 컴포넌트의 state값을 변경(setState)
 
 - redux 
   - 데이터를 분산하여 저장하는 것이 아니라 하나의 저장소에 저장
@@ -234,10 +234,26 @@ MyComponent.defaultProps = {
 - 데이터를 App의 state.content에 삽입
 
 ### create 구현 : onSubmit 이벤트
+- 이벤트 발생 시, 상위 컴포넌트의 값을 변경해 주면됨
+  1. 하위 컴포넌트에서 데이터를 어떻게 상위 컴포넌트로 넘겨 줄 것인가
+    - 이벤트 내의 target을 잘 분석해 볼것!
+  2. 상위 컴포넌트에서 받은 데이터로 어떻게 setState 할 것인가 
+    - 일단 잘 받아오는지 출력, 다음 장에서 계속 ... 
 
 ### create 구현 : contents 변경
+- UI에 영향을 주지않는다면 굳이 state 값으로 할 필요가 없음 
+  - 설정하게 되면 불필요한 랜더링이 발생할 수 있음
+- 배열에 push 후, 데이터 변경(setState)은 성능 개선 시 까다로움
+  - 순수함수?
+  - concat 사용, 원본을 변경하지 않음
 
 ### create 구현 : shouldComponentUpdate
+- push는 안 되고? concat은 되고? 왜???
+- 관련 없는 컴포넌트가 랜더링 되는 것은 비효율적!
+- 개발자가 특정 상황에 대해 컴포넌트가 랜더링 될지 결정할 수 있음
+- shouldComponentUpdate(newProps, newState)의 리턴 값과 로직을 통해 이를 결정
+- shouldComponentUpdate는 render이전에 실행됨
+- shouldComponentUpdate 이전 값(this.props)에 접근할 수 있음
 
 ### create 구현 : immutable
 

@@ -37,6 +37,7 @@ import './App.css';
 class App extends Component {
   constructor(props) {
     super(props);
+    this.max_content_id = 2;
     this.state = {
       mode: "create",
       selected_content_id: 0,
@@ -45,7 +46,7 @@ class App extends Component {
       content: [
         { id: 0, title: "HTML", desc: "HTML is for information" },
         { id: 1, title: "CSS", desc: "CSS is for design" },
-        { id: 2, title: "JavaScript", desc: "JavaScript is for interactive" },
+        { id: 2, title: "JavaScript", desc: "JavaScript is for interactive" }
       ]
     }
   }
@@ -57,11 +58,21 @@ class App extends Component {
       _desc = this.state.welcome.desc
       _content = <ReadContent title={_title} desc={_desc}></ReadContent>
     } else if (this.state.mode === "read") {
-      _title = this.state.content[this.state.selected_content_id].title
-      _desc = this.state.content[this.state.selected_content_id].desc
+      for (var i = 0; i < this.state.content.length; i++) {
+        if (this.state.content[i].id === this.state.selected_content_id) {
+          _title = this.state.content[i].title
+          _desc = this.state.content[i].desc
+          break;
+        }
+      }
       _content = <ReadContent title={_title} desc={_desc}></ReadContent>
     } else if (this.state.mode === "create") {
-      _content = <CreateContent />
+      _content = <CreateContent onSubmitComponent={function (_title, _desc) {
+        this.max_content_id++;
+        this.setState({ 
+          content: this.state.content.concat({ id: this.max_content_id, title: _title, desc: _desc }) 
+        })
+      }.bind(this)} />
     } else if (this.state.mode === "update") {
       console.log("mode : update")
     } else if (this.state.mode === "delete") {

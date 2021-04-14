@@ -1,7 +1,12 @@
 import React, { Component } from 'react';
 
 class TOC extends Component {
+  shouldComponentUpdate(newProps, newState){
+    console.log("TOC shouldComponentUpdate");
+    return !(newProps.data === this.props.data);
+  }
   render() {
+    console.log("TOC render");
     var data = this.props.data;
     var lists = [];
     for (var i = 0; i < data.length; i++) {
