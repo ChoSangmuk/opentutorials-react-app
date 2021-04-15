@@ -79,8 +79,12 @@ ctrl + c
 - 웹서버의 다큐먼트 최상위 디렉토리에 build 내용물을 넣어야함
 - 간단하게 웹서버 구동 -> 147KB 사용
 ```sh
+// npm 설치 
 npm install -g serve
 serve -s build // 웹 콘텐츠 root 경로 지정
+
+// 혹은 npx 사용
+npx serve -s build
 ```
 
 ## 컴포넌트 제작
@@ -95,6 +99,7 @@ serve -s build // 웹 콘텐츠 root 경로 지정
 - header을 Subject라는 이름의 태그(컴포넌트)로 바꾸기
 - App.js에 컴포넌트 만드는 코드(템플릿)가 있으니 참고
 - render() 함수는 필수이며, 컴포넌트는 반드시 하나의 태그로 시작해야함
+- 컴포넌트 명은 대문자로 시작해야함
 - class 부분 코드는 자바스크립트가 아님(거의 비슷)
 - 태그를 문자열로 표현해야하지만 까다로움으로 페이스북에서 JSX 포맷을 만들어 지정
 - CRA가 알아서 JS로 컨버팅해줌
@@ -163,6 +168,9 @@ MyComponent.defaultProps = {
   - react에선 페이지 전체가 리로딩(랜더링)이 아닌 해당 이벤트 관련 내용만 변경을 원함
   - 기존에는 onclick 사용, react에서는 onClick={funcition()} 이라는 이벤트=함수를 사용
   - preventDefault로 기본적인 동작(이벤트)을 방지
+- 컴포넌트 사용 시, 데이터를 전달할 뿐만 아니라 함수(이벤트)도 프롭스를 통해 전달할 수 있음
+  - 하위 컴포넌트에서 상위 컴포넌트에서 전달한 함수(이벤트)를 실행
+  - 실행의 결과로 상위 컴포넌트의 state변경 -> 상위 컴포넌트가 render 됨
 
 ### 이벤트에서 state 변경하기
 - this.state.mode = "welcome" 으로 state 변경?
@@ -187,15 +195,15 @@ MyComponent.defaultProps = {
   - setState를 통해 객체 형태로 값을 전달해 주어야함 
 
 ### 컴포넌트 이벤트 만들기 1 & 2 & 3
-- 이벤트의 단순 사용이 아닌 직접 이벤트를 만들어 보기
-- 컴포넌트 사용 시, 데이터를 전달할 뿐만 아니라 진행할 이벤트도 프롭스를 통해 전달할 수 있음
-- 변경되어야할 상태를 state로 생성, state를 변경하여 내용을 변경
-- 속성을 이용하여 데이터 전달
+- 변경되어야할 상태를 state(selected_content_id)로 생성
+- 하위 컴포넌트(TOC)에서 상위 컴포넌트로 선택된 데이터(data[i].id)를 보내 주어야함 
+1. event target 이용
   - event객체는 target이라는 속성을 가지며, target은 이벤트가 일어난 태그를 가르킴
   - data- 라는 이름의 속성은 target의 dataset에서 확인 가능
   - Number() 은 문자를 숫자로 변경해줌
-- bind(this, data)로 데이터 전달
+2. bind(this, data)로 데이터 전달
   - data 작성 시, 함수 내에서 1번째 파라미터로 사용 가능
+- 전달 받은 후 setState를 통해 state 변경 -> render 실행
 
 ## Create 기능 구현
 ### 베이스 캠프
@@ -223,42 +231,45 @@ MyComponent.defaultProps = {
 
 ### create 구현 : mode 전환 기능
 - state 값(상황, 상태)에 따라 컴포넌트를 교체
-- 변수를 만들고 그 변수에 컴포넌트를 저장하여 사용
+- 변수를 만들고 그 변수에 컴포넌트를 상황에 따라 저장하여 사용
 
-### create 구현 : form
+### create 구현 : form & onSubmit 이벤트 & contents 변경
 - 입력 형태 창 form, html 기본 태그
   - 속성 action : 어디로 보낼지
   - 속성 method : post <- post로 보내야 데이터가 노출되지 않음
-- onSubmit form이 고유하게 가지는 기능을 이용 (이벤트 생성)
+- onSubmit form이 고유하게 가지는 기능을 이용하여 이벤트 생성
   - 기본적으로 페이지가 변경되지만 preventDefault를 이용하여 이를 방지
-- 데이터를 App의 state.content에 삽입
+1. 하위 컴포넌트(form 내용)에서 입력된 데이터를 어떻게 상위 컴포넌트로 넘겨 줄 것인가
+  - 데이터 확인 방법? 이벤트 내의 event의 target을 잘 분석해 볼것!
+2. 상위 컴포넌트에서 어떻게 데이터를 변경(state.content)할 것인가
+  - 이벤트 연결 후, 일단 잘 받아오는지 출력
+  - setState를 통해 데이터 변경
+  - 배열에 push 후, 데이터 변경(setState)은 성능 개선 시 까다로움
+  - concat 사용, 원본을 변경하지 않음(순수 함수...?)
 
-### create 구현 : onSubmit 이벤트
-- 이벤트 발생 시, 상위 컴포넌트의 값을 변경해 주면됨
-  1. 하위 컴포넌트에서 데이터를 어떻게 상위 컴포넌트로 넘겨 줄 것인가
-    - 이벤트 내의 target을 잘 분석해 볼것!
-  2. 상위 컴포넌트에서 받은 데이터로 어떻게 setState 할 것인가 
-    - 일단 잘 받아오는지 출력, 다음 장에서 계속 ... 
-
-### create 구현 : contents 변경
 - UI에 영향을 주지않는다면 굳이 state 값으로 할 필요가 없음 
   - 설정하게 되면 불필요한 랜더링이 발생할 수 있음
-- 배열에 push 후, 데이터 변경(setState)은 성능 개선 시 까다로움
-  - 순수함수?
-  - concat 사용, 원본을 변경하지 않음
 
-### create 구현 : shouldComponentUpdate
+### create 구현 : shouldComponentUpdate(newProps, newState)
 - push는 안 되고? concat은 되고? 왜???
 - 관련 없는 컴포넌트가 랜더링 되는 것은 비효율적!
 - 개발자가 특정 상황에 대해 컴포넌트가 랜더링 될지 결정할 수 있음
-- shouldComponentUpdate(newProps, newState)의 리턴 값과 로직을 통해 이를 결정
-- shouldComponentUpdate는 render이전에 실행됨
+- shouldComponentUpdate는 render이전에 실행
+- 리턴 값(boolean)을 통해 render의 실행 여부를 결정할 수 있음
 - shouldComponentUpdate 이전 값(this.props)에 접근할 수 있음
+- push 방식으로 구현하게 되었을 경우, 이전 값(this.props)이 현재 값(newProps)와 같아짐
 
 ### create 구현 : immutable
+- 원본을 바꾸지 않는다 : 불변성(immutable)
+- var B = Array.from(A) A로 새로운 배열(B)를 만든다.
+- var B = Object.assign({추가될 속성 정의},A) A로 새로운 객체(B)를 만든다.
+- immutable js 를 통해 원본을 바꾸지 않고 조작 가능 -> 일관된 코드를 사용할 수 있음
 
 ## Update & Delete 기능 구현
 ### update 구현
+- read, create와 유사
+- Content 결정 로직 부분을 함수로 분리
+- 현재 선택된 Content의 ID를 이용
 
 ### update 구현 : form
 

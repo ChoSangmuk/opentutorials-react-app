@@ -32,6 +32,7 @@ import TOC from './components/TOC';
 import Control from './components/Control';
 import CreateContent from './components/CreateContent';
 import ReadContent from './components/ReadContent';
+import UpdateContent from './components/UpdateContent';
 import './App.css';
 
 class App extends Component {
@@ -39,7 +40,7 @@ class App extends Component {
     super(props);
     this.max_content_id = 2;
     this.state = {
-      mode: "create",
+      mode: "welcome",
       selected_content_id: 0,
       subject: { title: "WEB", sub: "World Wide Web" },
       welcome: { title: "Welcome", desc: "Hello, Welcome To Opentutorials React App!" },
@@ -51,33 +52,40 @@ class App extends Component {
     }
   }
 
-  render() {
-    var _title, _desc, _content = null
+  getContent() {
+    var _content = null
     if (this.state.mode === "welcome") {
-      _title = this.state.welcome.title
-      _desc = this.state.welcome.desc
-      _content = <ReadContent title={_title} desc={_desc}></ReadContent>
+      _content = <ReadContent title={this.state.welcome.title} desc={this.state.welcome.desc} />
     } else if (this.state.mode === "read") {
       for (var i = 0; i < this.state.content.length; i++) {
         if (this.state.content[i].id === this.state.selected_content_id) {
-          _title = this.state.content[i].title
-          _desc = this.state.content[i].desc
+          _content = <ReadContent title={this.state.content[i].title} desc={this.state.content[i].desc} />
           break;
         }
       }
-      _content = <ReadContent title={_title} desc={_desc}></ReadContent>
     } else if (this.state.mode === "create") {
       _content = <CreateContent onSubmitComponent={function (_title, _desc) {
         this.max_content_id++;
-        this.setState({ 
-          content: this.state.content.concat({ id: this.max_content_id, title: _title, desc: _desc }) 
+        this.setState({
+          content: this.state.content.concat({ id: this.max_content_id, title: _title, desc: _desc })
         })
       }.bind(this)} />
     } else if (this.state.mode === "update") {
-      console.log("mode : update")
+      _content = <UpdateContent onSubmitComponent={function (_title, _desc) {
+        this.max_content_id++;
+        this.setState({
+          content: this.state.content.concat({ id: this.max_content_id, title: _title, desc: _desc })
+        })
+      }.bind(this)} />
     } else if (this.state.mode === "delete") {
-      console.log("mode : delete")
+      _content = <ReadContent title="Delete Mode" desc="delete something" />
+    } else {
+      _content = <ReadContent title={this.state.welcome.title} desc={this.state.welcome.desc} />
     }
+    return _content
+  }
+
+  render() {
     return (
       <div className="App">
         <Subject
@@ -85,17 +93,20 @@ class App extends Component {
           onClickComponent={function () {
             // this.state.mode = "welcome"
             this.setState({ mode: "welcome" })
-          }.bind(this)}></Subject>
+          }.bind(this)}>
+        </Subject>
         <TOC
           data={this.state.content}
           onClickComponent={function (data_id) {
             this.setState({ mode: "read", selected_content_id: data_id })
-          }.bind(this)}></TOC>
+          }.bind(this)}>
+        </TOC>
         <Control
           onClickComponent={function (selected_mode) {
             this.setState({ mode: selected_mode })
-          }.bind(this)}></Control>
-        {_content}
+          }.bind(this)}>
+        </Control>
+        {this.getContent()}
       </div>
     );
   }

@@ -1,7 +1,7 @@
 import React, { Component } from 'react';
 
 class TOC extends Component {
-  shouldComponentUpdate(newProps, newState){
+  shouldComponentUpdate(newProps, newState) {
     console.log("TOC shouldComponentUpdate");
     return !(newProps.data === this.props.data);
   }
