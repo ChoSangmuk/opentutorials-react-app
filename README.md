@@ -5,7 +5,6 @@
 - [생활코딩 홈페이지](https://www.opentutorials.org/module/4058)
 - [Youtube divide](https://www.youtube.com/playlist?list=PLuHgQVnccGMCRv6f8H9K5Xwsdyg4sFSdi)
 - [Youtube long take](https://www.youtube.com/watch?v=mJ64l_iONqw&t=408s)
-- [강사 github]()
 
 ## 수업 소개
 - javascript, class 등의 개념 이해 필요
@@ -158,7 +157,7 @@ MyComponent.defaultProps = {
 - 애플리케이션을 조금 더 역동적으로 만들어 줌
 - 목표 : 단순 데이터 전달이 아니라 사용자와의 상호작용!
   - 이벤트 발생 시, App 컴포넌트의 state가 변경 
-  - 변경된 state가 props로 전달됨으로써 동적으로 애플리케이션이 변경
+  - 변경된 state가 하위 컴포넌트에 props로 전달됨으로써 동적으로 애플리케이션이 변경
 - props, state가 변경될 시, 해당 state를 가지는 Component의 render가 재실행됨 
   - 화면이 다시 그려짐
 
@@ -169,7 +168,7 @@ MyComponent.defaultProps = {
   - 기존에는 onclick 사용, react에서는 onClick={funcition()} 이라는 이벤트=함수를 사용
   - preventDefault로 기본적인 동작(이벤트)을 방지
 - 컴포넌트 사용 시, 데이터를 전달할 뿐만 아니라 함수(이벤트)도 프롭스를 통해 전달할 수 있음
-  - 하위 컴포넌트에서 상위 컴포넌트에서 전달한 함수(이벤트)를 실행
+  - 상위 컴포넌트에서 하위 컴포넌트로 전달한 함수(이벤트)를 실행
   - 실행의 결과로 상위 컴포넌트의 state변경 -> 상위 컴포넌트가 render 됨
 
 ### 이벤트에서 state 변경하기
@@ -197,6 +196,7 @@ MyComponent.defaultProps = {
 ### 컴포넌트 이벤트 만들기 1 & 2 & 3
 - 변경되어야할 상태를 state(selected_content_id)로 생성
 - 하위 컴포넌트(TOC)에서 상위 컴포넌트로 선택된 데이터(data[i].id)를 보내 주어야함 
+- 프롭스로 전달받은 함수 인자에 결과 값 입력
 1. event target 이용
   - event객체는 target이라는 속성을 가지며, target은 이벤트가 일어난 태그를 가르킴
   - data- 라는 이름의 속성은 target의 dataset에서 확인 가능
@@ -240,6 +240,7 @@ MyComponent.defaultProps = {
 - onSubmit form이 고유하게 가지는 기능을 이용하여 이벤트 생성
   - 기본적으로 페이지가 변경되지만 preventDefault를 이용하여 이를 방지
 1. 하위 컴포넌트(form 내용)에서 입력된 데이터를 어떻게 상위 컴포넌트로 넘겨 줄 것인가
+  - 프롭스로 전달받은 함수 인자에 결과 값 입력
   - 데이터 확인 방법? 이벤트 내의 event의 target을 잘 분석해 볼것!
 2. 상위 컴포넌트에서 어떻게 데이터를 변경(state.content)할 것인가
   - 이벤트 연결 후, 일단 잘 받아오는지 출력
@@ -267,17 +268,42 @@ MyComponent.defaultProps = {
 
 ## Update & Delete 기능 구현
 ### update 구현
-- read, create와 유사
-- Content 결정 로직 부분을 함수로 분리
-- 현재 선택된 Content의 ID를 이용
+- read, create의 결합
+- Content 결정 로직 부분을 함수로 분리, render 함수를 간결하게
+- 현재 선택된 Content 데이터를 업데이트 컴포넌트에 전달
 
 ### update 구현 : form
+- 받아온 데이터를 화면에 뿌려주고 수정할 수 있게 하기
+- value에 값을 넣어버리는 경우, props를 사용하기 때문에 변경이 불가능
+```
+Warning: You provided a `value` prop to a form field without an `onChange` handler. 
+This will render a read-only field. If the field should be mutable use `defaultValue`. Otherwise, set either `onChange` or `readOnly`.
+```
+- 변경 가능하게 state화 -> 그러나 여전히 readOnly
+  - onChange 함수를 통해 진행해야함 setState를 쓰는 이유와 유사한 느낌..?
+- 중복 코드 제거! 
+  - title, desc 대신 [e.target.name] 사용
+  - bind도 정리
 
 ### update 구현 : state 변경
+- 글의 고유 Id도 관리 input hidden 사용
+  - 진행하지 않아도 되지만 기본적인 구현에 충실 
+- 상위 컴포넌트 onSubmitComponent 구현
+  - immutable을 위해 원본 데이터 복사
+  - id 값이 같은 객체만 데이터 변경(setState)
+- 변경된 화면(read)으로 이동... 어떻게? mode, selected_content_id 변경!
 
 ### delete 구현
+- read 상태에서 delete진행
+- 모드가 선택된 이후 바로 진행? 
 
 ## 수업을 마치며
+- immutable js
+- react router
+- npm run eject
+- redux plugin
+- react server side rendering
+- react native
 
 ## 읽을 거리
 - props 와 state 차이
