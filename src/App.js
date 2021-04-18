@@ -30,15 +30,18 @@ import React, { Component } from 'react';
 import Subject from './components/Subject';
 import TOC from './components/TOC';
 import Control from './components/Control';
+
+// content components
 import CreateContent from './components/CreateContent';
 import ReadContent from './components/ReadContent';
 import UpdateContent from './components/UpdateContent';
+
+// CSS
 import './App.css';
 
 class App extends Component {
   constructor(props) {
     super(props);
-    this.max_content_id = 2;
     this.state = {
       mode: "welcome",
       selected_content_id: 0,
@@ -52,86 +55,103 @@ class App extends Component {
     }
   }
 
-  getSelectedContent() {
-    for (var i = 0; i < this.state.content.length; i++) {
-      if (this.state.content[i].id === this.state.selected_content_id) {
-        return this.state.content[i]
+  getRowIDByContentID(contents, _id) {
+    for (var i = 0; i < contents.length; i++) {
+      if (contents[i].id === _id) {
+        return i
       }
     }
   }
 
-  getContent() {
-    var _content, data = null
-    if (this.state.mode === "welcome") {
-      _content = <ReadContent title={this.state.welcome.title} desc={this.state.welcome.desc} />
-    } else if (this.state.mode === "read") {
-      data = this.getSelectedContent()
-      _content = <ReadContent title={data.title} desc={data.desc} />
-    } else if (this.state.mode === "create") {
-      _content = <CreateContent onSubmitComponent={function (_title, _desc) {
-        this.max_content_id++;
-        this.setState({
-          content: this.state.content.concat({ id: this.max_content_id, title: _title, desc: _desc }),
-          mode: "read",
-          selected_content_id: this.max_content_id
-        })
-      }.bind(this)} />
-    } else if (this.state.mode === "update") {
-      _content = <UpdateContent data={this.getSelectedContent()} onSubmitComponent={function (_id, _title, _desc) {
-        var tempContent = Array.from(this.state.content)
-        for (var i = 0; i < tempContent.length; i++) {
-          if (tempContent[i].id === _id) {
-            tempContent[i].title = _title
-            tempContent[i].desc = _desc
-            break;
-          }
-        }
-        this.setState({ content: tempContent, mode: "read" })
-      }.bind(this)} />
-    } else {
-      _content = <ReadContent title={this.state.welcome.title} desc={this.state.welcome.desc} />
+  getMaxContentID(contents) {
+    var max_content_id = 0;
+    for (var i = 0; i < contents.length; i++) {
+      if (max_content_id < contents[i].id) {
+        max_content_id = contents[i].id
+      }
     }
-    return _content
+    return max_content_id;
+  }
+
+  createContent(contents, _id, _title, _desc) {
+    return contents.concat({ id: _id, title: _title, desc: _desc })
+  }
+
+  readContent(contents, _id) {
+    return Object.assign(contents[this.getRowIDByContentID(contents, _id)])
+  }
+
+  updateContent(contents, _id, _title, _desc) {
+    var tempContents = Array.from(contents)
+    tempContents[this.getRowIDByContentID(contents, _id)] = { id: _id, title: _title, desc: _desc }
+    return tempContents
+  }
+
+  deleteContent(contents, _id) {
+    var tempContents = Array.from(contents)
+    tempContents.splice(this.getRowIDByContentID(contents, _id), 1);
+    return tempContents
+  }
+
+  getContentComponent(mode) {
+    switch (mode) {
+      case "read":
+        return <ReadContent data={this.readContent(this.state.content, this.state.selected_content_id)} />
+      case "create":
+        return <CreateContent
+          onSubmitComponent={function (_title, _desc) {
+            var max_content_id = this.getMaxContentID(this.state.content) + 1
+            this.setState({
+              content: this.createContent(this.state.content, max_content_id, _title, _desc),
+              mode: "read",
+              selected_content_id: max_content_id
+            })
+          }.bind(this)} />
+      case "update":
+        return <UpdateContent data={this.readContent(this.state.content, this.state.selected_content_id)}
+          onSubmitComponent={function (_id, _title, _desc) {
+            this.setState({
+              content: this.updateContent(this.state.content, _id, _title, _desc),
+              mode: "read"
+            })
+          }.bind(this)} />
+      default:
+        return <ReadContent data={this.state.welcome} />
+    }
   }
 
   render() {
     return (
       <div className="App">
-        <Subject
-          data={this.state.subject}
+        <Subject data={this.state.subject}
           onClickComponent={function () {
             // this.state.mode = "welcome"
             this.setState({ mode: "welcome" })
           }.bind(this)}>
         </Subject>
-        <TOC
-          data={this.state.content}
-          onClickComponent={function (data_id) {
-            this.setState({ mode: "read", selected_content_id: data_id })
+        <TOC data={this.state.content}
+          onClickComponent={function (seleceted_id) {
+            this.setState({ mode: "read", selected_content_id: seleceted_id })
           }.bind(this)}>
         </TOC>
         <Control
           onClickComponent={function (selected_mode) {
             if (selected_mode === "delete") {
-              if (window.confirm("delete OK?")) {
-                var tempContent = Array.from(this.state.content)
-                for (var i = 0; i < tempContent.length; i++) {
-                  if (tempContent[i].id === this.state.selected_content_id) {
-                    tempContent.splice(i, 1);
-                    break;
-                  } 
-                }
-                this.setState({ mode: "welcome", content: tempContent })
-                alert("delete finish");
-              } else {
-                this.setState({ mode: "welcome" })
+              var tempContent = this.readContent(this.state.content, this.state.selected_content_id)
+              if (window.confirm("Delete " + tempContent.title + ". Do you agree?")) {
+                this.setState({
+                  mode: "welcome",
+                  selected_content_id: 0,
+                  content: this.deleteContent(this.state.content, this.state.selected_content_id)
+                })
+                alert("Delete finished");
               }
             } else {
               this.setState({ mode: selected_mode })
             }
           }.bind(this)}>
         </Control>
-        {this.getContent()}
+        {this.getContentComponent(this.state.mode)}
       </div>
     );
   }
