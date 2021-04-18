@@ -32,9 +32,9 @@ import TOC from './components/TOC';
 import Control from './components/Control';
 
 // content components
-import CreateContent from './components/CreateContent';
-import ReadContent from './components/ReadContent';
-import UpdateContent from './components/UpdateContent';
+import CreateContent from './components/contents/CreateContent';
+import ReadContent from './components/contents/ReadContent';
+import UpdateContent from './components/contents/UpdateContent';
 
 // CSS
 import './App.css';
