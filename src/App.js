@@ -135,6 +135,7 @@ class App extends Component {
           }.bind(this)}>
         </TOC>
         <Control
+          mode={this.state.mode}
           onClickComponent={function (selected_mode) {
             if (selected_mode === "delete") {
               var tempContent = this.readContent(this.state.content, this.state.selected_content_id)
