@@ -42,30 +42,75 @@
 ### create react app을 이용해서 개발환경구축
 - 리액트를 개발할 폴더를 생성
 - 이미 다운로드 받아진 CRA에 해당 폴더에 개발환경 요구
+- 각종 파일 및 폴더가 자동으로 생성됨
 ```sh
-mkdir opentutorials-react-app
-cd opentutorials-react-app
-create-react-app . # 각종 파일 및 폴더가 생성됨
+# Shell
+create-react-app opentutorials-react-app
 ```
 
 ### 샘플 웹앱 실행
 - visual studio Code를 통해 개발
 - 실행부터 해보기 -> 최소한으로 구현된 샘플 앱이 실행됨
 ```sh
+# Shell
 npm run start
-## 종료 
+
+# 종료 
 ctrl + c
 ```
 
 ### JS 코딩하는 법
 - 디렉토리 구조 파악
+<br>![init_directory](image_for_md/init_directory.png)<br>
+
 - public에 index.html이 존재 -> 웹브라우저에서 index.html 실행한 결과
+```html
+<!-- public/index.html -->
+  <body>
+    <noscript>You need to enable JavaScript to run this app.</noscript>
+    <div id="root"></div>
+  </body>
+```
 - 코딩을 통해 생성되는 컴퍼넌트들은 id = "root" 의 하위에 들어가도록 약속함 (변경가능)
-- root안에 들어가는 컴포넌트는 src 디렉토리 안의 내용임
+- root안에 들어가는 컴포넌트는 src 디렉토리 안의 내용임, src안에 원하는 내용을 코딩
 - 진입 파일은 index.js 라는 파일
 - index.js중 Document.getElementById('root')는 html에서 특정 태그를 선택자 문법
-- <App /> 컴포넌트, 실체는 './App' (.js 생략됨)
+- <App \/> 사용자 정의 태그 -> 컴포넌트, 실체는 './App' (.js 생략됨)
 - return 시, 1개의 태그만 리턴해야함
+```js
+// index.js
+import React from 'react';
+import ReactDOM from 'react-dom';
+import './index.css';
+import App from './App';
+import reportWebVitals from './reportWebVitals';
+
+ReactDOM.render(
+  <React.StrictMode>
+    <App />
+  </React.StrictMode>,
+  document.getElementById('root')
+);
+// ...
+```
+- 해당 수업에서는 클래스 컴포넌트만을 이용
+```js
+// App.js
+import React, { Component } from 'react';
+import './App.css';
+
+class App extends Component {
+  render() {
+    return (
+      <div className="App">
+        Hello, React !!
+      </div>
+    )
+  }
+}
+
+export default App;
+```
 
 ### CSS 코딩하는 법
 - CRA내 에서의 CSS 코딩
@@ -78,37 +123,173 @@ ctrl + c
 - 웹서버의 다큐먼트 최상위 디렉토리에 build 내용물을 넣어야함
 - 간단하게 웹서버 구동 -> 147KB 사용
 ```sh
-// npm 설치 
+# Shell
+# npm 설치 
 npm install -g serve
-serve -s build // 웹 콘텐츠 root 경로 지정
 
-// 혹은 npx 사용
+# 서버 작동
+serve -s build // 웹 콘텐츠 root 경로 지정
+# 혹은 npx 사용
 npx serve -s build
 ```
 
 ## 컴포넌트 제작
 ### 리액트가 없다면
+- symantic tag - 기능은 없고 의미만 있는 태그
 - 가동성이 매우 떨어짐
 - 재사용성도 떨어짐
 - 유지보수가 불편
+```html
+<!-- test.html -->
+<html>
+
+<body>
+  <header>
+    <h1>WEB</h1>
+    World Wide Web!
+  </header>
+
+  <nav>
+    <ul>
+      <li><a href="1. html">HTML</a></li>
+      <li><a href="2. css">CSS</a></li>
+      <li><a href="3. javascript">JavaScript</a></li>
+    </ul>
+  </nav>
+
+  <article>
+    <h3>HTML</h3>
+    HTML is HyperText Markup Language.
+  </article>
+</body>
+
+</html>
+```
 
 ### 컴포넌트 만들기 1 & 2
 - 컴포넌트는 정리 정돈 상자, 사용자 정의 태그
-- test.html -> react로 바꾸기
-- header을 Subject라는 이름의 태그(컴포넌트)로 바꾸기
-- App.js에 컴포넌트 만드는 코드(템플릿)가 있으니 참고
-- render() 함수는 필수이며, 컴포넌트는 반드시 하나의 태그로 시작해야함
-- 컴포넌트 명은 대문자로 시작해야함
+- test.html파일을 react로 바꾸어 보기
+  - header을 Subject라는 이름의 태그(컴포넌트)로 바꾸기
+  - App.js에 컴포넌트 만드는 코드(템플릿)가 있으니 참고
+```js
+// App.js App Component
+// ...
+class App extends Component {
+  render() {
+    return (
+      <div className="App">
+        <Subject />
+      </div>
+    )
+  }
+}
+// ...
+```
+- 자바스크립트 최신 스팩에서는 class 내부의 함수는 function 키워드 생략
+- render() 함수는 필수이며, 컴포넌트는 반드시 하나의 태그로 시작해야하며,컴포넌트 명은 대문자로 시작해야함
 - class 부분 코드는 자바스크립트가 아님(거의 비슷)
-- 태그를 문자열로 표현해야하지만 까다로움으로 페이스북에서 JSX 포맷을 만들어 지정
-- CRA가 알아서 JS로 컨버팅해줌
+  - 태그를 문자열로 표현해야하지만 까다로움으로 페이스북에서 JSX 포맷을 만들어 지정
+  - CRA가 알아서 JS와 HTML로 컨버팅해줌
 - 컴포넌트는 클래스 형과 함수형이 있으며, 차이점이 존재
+```js
+// App.js
+import React, { Component } from 'react';
+import './App.css';
+
+class Subject extends Component {
+  render() {
+    return (
+      <header>
+        <h1>WEB</h1>
+        World Wide Web!
+      </header>
+    );
+  }
+}
+
+class TOC extends Component {
+  render() {
+    return (
+      <nav>
+        <ul>
+          <li><a href="1. html">HTML</a></li>
+          <li><a href="2. css">CSS</a></li>
+          <li><a href="3. javascript">JavaScript</a></li>
+        </ul>
+      </nav>
+    );
+  }
+}
+
+class Content extends Component {
+  render() {
+    return (
+      <article>
+        <h3>HTML</h3>
+        HTML is HyperText Markup Language.
+      </article>
+    );
+  }
+}
+
+class App extends Component {
+  render() {
+    return (
+      <div className="App">
+        <Subject />
+        <TOC />
+        <Content />
+      </div>
+    )
+  }
+}
+
+export default App;
+```
 
 ### props
-- 컴포넌트들 간의 데이터를 공유(상위 -> 하위)하여 사용할 수 있음
-- 태그에서는 속성(attribute) 
+- 태그에서는 이름(a, div)이라는 공통점과 속성(attribute)을 통해서 재사용성이 높은 부품을 만들어냄
+- 단순히 한가지 내용만을 나타낼 수 있는 컴포넌트는 효율성이 떨어짐
+- 사용자 정의 태그인 컴포넌트도 속성(attribute)을 이용하여 나타낼 수 있음
 - 컴포넌트에서는 프롭스(props)이라는 차이점으로 각각의 컴포넌트에 의미를 전달할 수 있음 -> 마치 함수의 파라미터 처럼...
+- 컴포넌트들 간의 데이터를 공유(상위 -> 하위)하여 사용할 수 있음
 - 사용법은 하위 컴포넌트에서 {this.props.name} 로 사용!
+```js
+// App.js
+class Content extends Component {
+  render() {
+    return (
+      <article>
+        <h3>{this.props.title}</h3>
+        {this.props.desc}
+      </article>
+    );
+  }
+}
+
+class Subject extends Component {
+  render() {
+    return (
+      <header>
+        <h1>{this.props.title}</h1>
+        {this.props.sub}
+      </header>
+    );
+  }
+}
+
+class App extends Component {
+  render() {
+    return (
+      <div className="App">
+        <Subject title="Web" sub="World Wide Web!" />
+        <TOC />
+        <Content title="HTML" desc="HTML is HyperText Markup Language." />
+      </div>
+    )
+  }
+}
+```
 - props의 default 값을 설정할 수 있음
 ```js
 class MyComponent extends Component {
@@ -127,13 +308,95 @@ MyComponent.defaultProps = {
 - 측정과 분석, 탐구 -> 툴과 친해지기
 - 질문과 검색
 - tool/debugging - chrome 웹 스토어 - React Developer Tools 사용
+- 실제 코드가 아닌 react상의 컴포넌트를 보여줌 + props 값을 변경하고 실시간으로 확인도 가능
 
 ### Component 파일로 분리하기
-- Component 정리 작업
 - 여러가지 Component가 한 파일에 있음
   - 다른 Component에서 재사용하기 어려움
   - 너무 많아지면 관리도 어려움
-- 해당 클래스만 외부에서 사용할 수 있게 허용 export default ~~~~;
+- Component 정리 작업
+  - 각각의 컴포넌트 별로 별도의 파일로 쪼개자
+  - 해당 클래스만 외부에서 사용할 수 있게 허용 export default ~~~~;
+- Content -> ./components/Content.js
+```js
+import React, { Component } from 'react';
+
+class Content extends Component {
+  render() {
+    return (
+      <article>
+        <h3>{this.props.title}</h3>
+        {this.props.desc}
+      </article>
+    );
+  }
+}
+
+export default Content;
+```
+- Subject -> ./components/Subject.js
+```js
+import React, { Component } from 'react';
+
+class Subject extends Component {
+  render() {
+    return (
+      <header>
+        <h1>{this.props.title}</h1>
+        {this.props.sub}
+      </header>
+    );
+  }
+}
+
+export default Subject;
+```
+- TOC -> ./components/TOC.js
+```js
+import React, { Component } from 'react';
+
+class TOC extends Component {
+  render() {
+    return (
+      <nav>
+        <ul>
+          <li><a href="1. html">HTML</a></li>
+          <li><a href="2. css">CSS</a></li>
+          <li><a href="3. javascript">JavaScript</a></li>
+        </ul>
+      </nav>
+    );
+  }
+}
+
+export default TOC;
+```
+- 정리 완료된, 간결해진 상태의 App.js
+```js
+import React, { Component } from 'react';
+
+// components
+import Content from './components/Content'
+import Subject from './components/Subject'
+import TOC from './components/TOC'
+
+// CSS
+import './App.css';
+
+class App extends Component {
+  render() {
+    return (
+      <div className="App">
+        <Subject title="Web" sub="World Wide Web!" />
+        <TOC />
+        <Content title="HTML" desc="HTML is HyperText Markup Language." />
+      </div>
+    )
+  }
+}
+
+export default App;
+```
 
 ## state
 ### State 소개
