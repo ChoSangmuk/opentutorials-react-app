@@ -400,20 +400,92 @@ export default App;
 
 ## state
 ### State 소개
-- props는 사용자가 컴포넌트를 사용하는 입장에서 중요
-- State는 props의 값에 따라 내부의 구현에 따라 필요한 데이터
-- 컴포넌트간 데이터를 주고 받는 방법 및 컴포넌트 내에서 사용(읽기)하는 법!
+- props는 상위 컴포넌트에서 해당 컴포넌트를 사용하는 입장에서 중요
+- State는 props의 값에 따라 내부의 구현(로직)에 필요한 데이터
+- 상위 컴포넌트는 하위 컴포넌트 내부에서 어떠한 데이터가 사용되는지 알 필요가 없음
+- Java의 캡슐화랑 비슷한 개념으로... 전선이 삐져나온 전자제품은 인기가 없다
 
 ### State 사용
-- props 값이 하드코딩 되어있음
-- 이 값(title="WEB")을 State로 만들고, State값을 하위 컴포넌트에 props로 전달함으로 개선
-- 상위 State로 전달, 하위에 props로 사용
-- 생성자(constructor)를 통해 Component(State)값을 초기화
-- 실행순서 constructor -> render 
+- 하위 컴포넌트(Subject)에게 전달하는 값(title="Web" ...)이 하드코딩 되어있음
+- 상위 컴포넌트(App)에서 이 값을 State로 만들고, State값을 하위 컴포넌트(Subject)에 props로 전달해보자
+- 컴포넌트의 실행순서는 constructor -> render
+  - 생성자(constructor)를 통해 Component(State)값을 초기화
+- jsx에서 자바스크립트의 코드로써 실행되길 원한다면 {}를 사용
+```js
+// App.js
+// ...
+class App extends Component {
+  constructor(props) {
+    super(props);
+    this.state = { // App 컴포넌틔의 State
+      subject: { title: "Web", sub: "World Wide Web!" }
+    }
+  }
+
+  render() {
+    return (
+      <div className="App">
+        <Subject // App 컴포넌트의 State를 Subject 컴포넌트의 Porps로 전달
+          title={this.state.subject.title}
+          sub={this.state.subject.sub}
+        />
+        <TOC />
+        <Content title="HTML" desc="HTML is HyperText Markup Language." />
+      </div>
+    )
+  }
+}
+// ...
+```
 
 ### key
-- State 여러개 설정 및 반복문으로 lists 생성
-- lists 자동 생성 시, key 값 입력 해주어야함
+- TOC 컴포넌트에 하드 코딩된 내용을 App의 State로 보관하다가 TOC 컴포넌트의 props로 전달하자
+- State 여러 개 설정 및 반복문으로 lists [] 생성
+- 주의! 여러 개의 태그를 자동으로 생성할 때는 key 값 입력 해주어야함!
+```js
+// App.js ...
+class App extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      subject: { title: "Web", sub: "World Wide Web!" },
+      contents: [
+        { id: "1", title: "HTML", desc: "HTML is ..." },
+        { id: "2", title: "CSS", desc: "CSS is ..." },
+        { id: "3", title: "JavaScript", desc: "JavaScript is ..." },
+      ]
+    }
+  }
+
+  render() {
+    return (
+      <div className="App">
+        <Subject title={this.state.subject.title} sub={this.state.subject.sub} />
+        
+        <TOC data={this.state.contents} />
+        
+        <Content title="HTML" desc="HTML is HyperText Markup Language." />
+      </div>
+    )
+  }
+}
+// ...
+
+// TOC.js ...
+class TOC extends Component {
+  render() {
+    const data = this.props.data;
+    var lists = [];
+    var i = 0;
+    while (i < data.length) {
+      lists.push(<li key={data[i].id}><a href={"/content/" + data[i].id}>{data[i].title}</a></li>);
+      i++;
+    }
+    return ( <nav> <ul> {lists} </ul> </nav> );
+  }
+}
+// ...
+```
 
 ## 이벤트
 ### 이벤트 state props 그리고 render 함수
@@ -421,31 +493,128 @@ export default App;
 - 목표 : 단순 데이터 전달이 아니라 사용자와의 상호작용!
   - 이벤트 발생 시, App 컴포넌트의 state가 변경 
   - 변경된 state가 하위 컴포넌트에 props로 전달됨으로써 동적으로 애플리케이션이 변경
-- props, state가 변경될 시, 해당 state를 가지는 Component의 render가 재실행됨 
-  - 화면이 다시 그려짐
+- props, state가 변경될 시, 해당 state를 가지는 Component의 render가 호출됨 
+  - 화면이 다시 그려짐, 해당 컴포넌트의 하위 컴포넌트도 랜더링됨
+- 먼저 현재 App.js의 State에 대한 조건문을 통해 하위 컴포넌트에 전달되는 Props를 변경하는 것 부터 ...
+  - 현재 상태를 나타내기 위해 App에 mode라는 State를 추가
+  - welcome 상태에서의 컨텐츠 역시 State로 만듬
+  - 아직 이벤트가 없음으로 개발자 도구를 통해 테스트
+```js 
+// App.js ...
+class App extends Component {
+  constructor(props) {
+    super(props);
+    this.state = {
+      mode: "welcome",
+      welcone: { title: "Welcome!", desc: "Welcome React !" },
+      // ...
+    }
+  }
+
+  render() {
+    console.log("App.js render()");
+    var _title, _desc = null;
+    if (this.state.mode === "welcome") {
+      _title = this.state.welcone.title;
+      _desc = this.state.welcone.desc;
+    } else if (this.state.mode === "read") {
+      _title = this.state.contents[0].title;// 개선해야함... 임시 ...
+      _desc = this.state.contents[0].desc;// 개선해야함... 임시 ...
+    }
+
+    return (
+      <div className="App">
+        {/* ... */}
+        <Content title={_title} desc={_desc} />
+      </div>
+    )
+  }
+}
+// ...
+```
 
 ### 이벤트 설치
-- 이벤트를 발생시키려면 이벤트를 만들어야함(설치)
-- a 태그를 클릭시 해당 주소로 이동하는 것이 본래 a 태그의 역활
+- 이벤트를 발생시키려면 이벤트를 만들어야함
+- Subject 컴포넌트의 a 태그
+  - 클릭 시, 상위 컴포넌트인 App의 State(mode)를 변경하는 것이 최종 목적 (몹시 어려움...)
+  - 먼저 App에서 해당 기능을 구현하고 분리해보자 
+```js
+// App.js ...
+// render() { return() }
+return (
+  <div className="App">
+    <header>
+      <h1><a href="/">{this.state.subject.title}</a></h1>
+      {this.state.subject.sub}
+    </header>
+    {/* <Subject
+      title={this.state.subject.title}
+      sub={this.state.subject.sub}
+    /> */}
+    <TOC data={this.state.contents} />
+    <Content title={_title} desc={_desc} />
+  </div>
+)
+```
+- 공식 HTML에서는 onclick 사용, react jsx에서는 onClick={funcition()} 이라는 이벤트를 사용해야함
+  - a 태그의 href 주소로 이동하는 것이 본래 역활
   - react에선 페이지 전체가 리로딩(랜더링)이 아닌 해당 이벤트 관련 내용만 변경을 원함
-  - 기존에는 onclick 사용, react에서는 onClick={funcition()} 이라는 이벤트=함수를 사용
+  - onClick로 이벤트를 설치하면 이벤트가 실행될 때(함수가 호출될때), 첫번째 파라미터로 이벤트 객체를 넘겨줌
   - preventDefault로 기본적인 동작(이벤트)을 방지
-- 컴포넌트 사용 시, 데이터를 전달할 뿐만 아니라 함수(이벤트)도 프롭스를 통해 전달할 수 있음
-  - 상위 컴포넌트에서 하위 컴포넌트로 전달한 함수(이벤트)를 실행
-  - 실행의 결과로 상위 컴포넌트의 state변경 -> 상위 컴포넌트가 render 됨
+```js
+// App.js <header> 
+<h1><a href="/" onClick={function (event) {
+  event.preventDefault();
+  alert("hi");
+}}>{this.state.subject.title}</a></h1>
+```
 
 ### 이벤트에서 state 변경하기
+- 이전 시간에 ..
+  - App의 State를 설정하고, 그 값에 따라 Props를 변경하여 전달하는 것 완료
+  - a 태그에 이벤트를 달고, a 태그의 본래 기능을 막아둠
+  - 이제 이벤트에서 App의 State를 설정 혹은 변경하기
 - this.state.mode = "welcome" 으로 state 변경?
-  - 이벤트 내에서 this를 바로 사용 시, 컴포넌트를 가르키는 것이 아니라 아무런 값이 셋팅되어있지 않음
-  - bind(this) 사용하여 컴포넌트를 가르키게함
+  - 이벤트 내에서 this를 바로 사용 시, 컴포넌트를 가르키는 것이 아니라 아무 것도 가르키지 않음
+  - 함수가 끝난 직후에 bind(this) 사용하여 해당 컴포넌트를 가르키게함
+  - 혹은 Arrow 함수 사용 : Arrow 함수는 this를 자동으로 바인딩
+```js
+// App.js <header> 
+<header>
+  <h1><a href="/" onClick={function (event) {
+    event.preventDefault();
+    this.state.mode = "welcome";
+  }.bind(this)}>{this.state.subject.title}</a></h1>
+  {this.state.subject.sub}
+  {/* 혹은 */}
+  <h1><a href="/" onClick={(event) => {
+    event.preventDefault();
+    this.state.mode = "welcome";
+  }}>{this.state.subject.title}</a></h1>
+  {this.state.subject.sub}
+</header>
+```
 - 그러나 이렇게 해도 안됨! 이유? 리액트는 이런 방법 사용 시, state 값이 변경된 것을 모름
   - 리액트가 원하는 방법으로 state를 변경해주어야함!
   - this.setState() 함수를 사용하여 state를 변경
+```js
+// App.js <header> 
+<header>
+  <h1><a href="/" onClick={function (event) {
+    event.preventDefault();
+    this.setState({
+      mode: "welcome"
+    });
+    //this.state.mode = "welcome";
+  }.bind(this)}>{this.state.subject.title}</a></h1>
+  {this.state.subject.sub}
+</header>
+```
 
 ### 이벤트 bind 함수 이해하기
 - bind : 엮다, 묶다
 - render안에서 this는 render함수가 속해있는 컴포넌트 자체를 가르킴!
-- 함수 안에서 this는 아무 값도 없음
+- 함수 안에서 this는 아무 값도 없음 undefined
 - bind를 통해 this를 연결해주자
 - var C = A.bind(B) 
   - A라는 함수 안에서 this는 B가 되도록 연결한 함수 C를 새롭게 생성
@@ -454,9 +623,13 @@ export default App;
 - state 값의 변경 시 직접 변경? VS setState 사용?
   - 생성자 실행 시에는 직접 변경해도됨
   - 이미 컴포넌트가 끝난 시점에서는 안됨 -> 리액트 모르게 바꾼셈! (변경되기는 함...)
-  - setState를 통해 객체 형태로 값을 전달해 주어야함 
+  - setState를 통해 객체(자바스크립트에서는 함수도 객체) 형태로 값을 전달해 주어야함 
+
 
 ### 컴포넌트 이벤트 만들기 1 & 2 & 3
+- 컴포넌트 사용 시, 데이터를 전달할 뿐만 아니라 함수(이벤트)도 프롭스를 통해 전달할 수 있음
+  - 상위 컴포넌트에서 하위 컴포넌트로 전달한 함수(이벤트)를 실행
+  - 실행의 결과로 상위 컴포넌트의 state변경 -> 상위 컴포넌트가 render 됨
 - 변경되어야할 상태를 state(selected_content_id)로 생성
 - 하위 컴포넌트(TOC)에서 상위 컴포넌트로 선택된 데이터(data[i].id)를 보내 주어야함 
 - 프롭스로 전달받은 함수 인자에 결과 값 입력
