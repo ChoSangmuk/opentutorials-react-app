@@ -450,9 +450,9 @@ class App extends Component {
     this.state = {
       subject: { title: "Web", sub: "World Wide Web!" },
       contents: [
-        { id: "1", title: "HTML", desc: "HTML is ..." },
-        { id: "2", title: "CSS", desc: "CSS is ..." },
-        { id: "3", title: "JavaScript", desc: "JavaScript is ..." },
+        { id: 1, title: "HTML", desc: "HTML is ..." },
+        { id: 2, title: "CSS", desc: "CSS is ..." },
+        { id: 3, title: "JavaScript", desc: "JavaScript is ..." },
       ]
     }
   }
@@ -626,19 +626,78 @@ return (
   - setState를 통해 객체(자바스크립트에서는 함수도 객체) 형태로 값을 전달해 주어야함 
 
 
-### 컴포넌트 이벤트 만들기 1 & 2 & 3
-- 컴포넌트 사용 시, 데이터를 전달할 뿐만 아니라 함수(이벤트)도 프롭스를 통해 전달할 수 있음
-  - 상위 컴포넌트에서 하위 컴포넌트로 전달한 함수(이벤트)를 실행
-  - 실행의 결과로 상위 컴포넌트의 state변경 -> 상위 컴포넌트가 render 됨
-- 변경되어야할 상태를 state(selected_content_id)로 생성
-- 하위 컴포넌트(TOC)에서 상위 컴포넌트로 선택된 데이터(data[i].id)를 보내 주어야함 
-- 프롭스로 전달받은 함수 인자에 결과 값 입력
+### 컴포넌트 이벤트 만들기 1
+- 이전 시간까지 진행한 내용
+  1. App.js에서 state에 따라 다른 내용을 보여주게끔 반복문을 사용했음
+  2. App.js에서 onClick을 통해 이벤트 발생시킴
+  3. 발생된 이벤트에서 App.js의 mode state를 변경하게함
+- 이제는 Subject에서 App의 state를 변경하게끔 하면됨
+> How....?
+- 지금까지는 단순히 HTML이 제공하는 이벤트만을 사용
+- React를 통해 사용자 정의 태그(컴포넌트)를 작성할 수 있게 됨으로써 태그의 이벤트도 직접 만들어 제공할 수 있음
+1. Subject 컴포넌트를 사용하려는 사람에게 onChangePage라는 속성(이벤트)을 제공
+```js
+// App.js
+<Subject
+  title={this.state.subject.title}
+  sub={this.state.subject.sub}
+  onChangePage={function(){}}
+/>
+```
+2. 사용자는 onChangePage에 a 태그가 클릭되었을때 실행해야하는 코드를 작성함
+    - App의 mode state를 변경하는 코드
+```js
+// App.js onChangePage
+function () {
+    this.setState({
+      mode: "welcome"
+    });
+  }.bind(this)
+```
+3. Subject 컴포넌트는 사용자가 실행하라고 넘겨준 코드(Props, 함수)를 실행만 하면됨(본래의 기능은 막음)
+```js
+// Subject.js <header>
+<h1>
+  <a href="/" onClick={function (event) {
+    event.preventDefault();
+    this.props.onChangePage();
+  }.bind(this)}> {this.props.title} </a>
+</h1>
+```
+
+### 컴포넌트 이벤트 만들기 2 & 3
+- TOC 컴포넌트에서 이벤트 발생 시, App 컴포넌트의 mode state를 read로 변경하고, 클릭한 컨텐츠를 본문(Content)에 나타내기
+- 나타내어야할 본문의 값(Id)을 App의 state(selected_content_id)에 저장
+- 조건문을 통해 selected_content_id와 Id값이 같은 컨텐츠를 본문(Content)에 보여주자 -> 개발자 도구를 통해 테스트 
+- App.js에서 TOC에 전달해준 onChangePage 함수를 실행시켜 App의 mode와 selected_content_id를 변경시키자
+  - mode는 read로 바꿀테니 문제가 없는데 선택된 data[i].id는 어떻게 지정해야할까?
 1. event target 이용
   - event객체는 target이라는 속성을 가지며, target은 이벤트가 일어난 태그를 가르킴
   - data- 라는 이름의 속성은 target의 dataset에서 확인 가능
   - Number() 은 문자를 숫자로 변경해줌
+```js
+// TOC.js
+<a
+  href={"/content/" + data[i].id}
+  data-id={data[i].id}
+  onClick={function (event) {
+    event.preventDefault();
+    this.props.onChangePage(event.target.dataset.id);
+  }.bind(this)}
+>
+```
 2. bind(this, data)로 데이터 전달
   - data 작성 시, 함수 내에서 1번째 파라미터로 사용 가능
+```js
+// TOC.js
+<a
+  href={"/content/" + data[i].id}
+  onClick={function (content_id, event) {
+    event.preventDefault();
+    this.props.onChangePage(content_id);
+  }.bind(this, data[i].id)}
+>
+```
 - 전달 받은 후 setState를 통해 state 변경 -> render 실행
 
 ## Create 기능 구현
