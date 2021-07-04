@@ -774,45 +774,206 @@ class App extends Component {
 
 ### create 구현 : 소개
 - CRUD : Create, Read, Update, Delete
+- Create 기능의 흐름
+  1. TOC와 Content 사이에 '생성', '수정', '삭제' 버튼을 만들기
+  2. 생성 버튼 클릭 시, App의 mode state를 create로 변경, Content 컴포넌트가 글을 추가할 수 있는 컴포넌트(CreateContent, form)로 변경
+  3. form에 데이터 입력 후 저장을 하면, App contents array state에 입력한 내용이 추가(push)되면서 TOC에 입력 내용이 추가됨
 
 ### create 구현 : mode 변경 기능
-- delete 기능의 경우, 링크로 생성하게되면 위험할 수 있음
-- 이벤트가 실행되었을때, 실행되는 함수를 핸들러라고 함
+- TOC와 Content 사이에 '생성', '수정', '삭제' 버튼을 만들기
+- 버튼 클릭 시, App의 mode state를 클릭한 버튼에 맞는 값으로 변경
+- delete 기능의 경우, 링크로 생성하게되면 위험할 수 있음으로 버튼으로 생성
+- Control의 기능을 클릭했을 때(이벤트가 발생했을 때) 실행될 함수(이벤트 핸들러)를 만들어야함
+```js
+// App.js ...
+import Control from './components/Control';
+// App class render ...
+<Control onChangeMode={function (_mode) {
+  this.setState({ mode: _mode })
+}.bind(this)} />
+// ...
+
+// Control.js ...
+class Control extends Component {
+  render() {
+    console.log("Control.js render()");
+    return (
+      <ul>
+        <li>
+          <a href="/create"
+            onClick={function (event) {
+              event.preventDefault();
+              this.props.onChangeMode("create");
+            }.bind(this)}>Create</a>
+        </li>
+        <li>
+          <a href="/update"
+            onClick={function (event) {
+              event.preventDefault();
+              this.props.onChangeMode("update")
+            }.bind(this)}>Update</a></li>
+        <li>
+          <input type="button"
+            onClick={function (event) {
+              event.preventDefault();
+              this.props.onChangeMode("delete")
+            }.bind(this)} value="Delete"></input></li>
+      </ul>
+    );
+  }
+}
+```
 
 ### create 구현 : mode 전환 기능
-- state 값(상황, 상태)에 따라 컴포넌트를 교체
-- 변수를 만들고 그 변수에 컴포넌트를 상황에 따라 저장하여 사용
+- Content 컴포넌트가 글을 추가할 수 있는 컴포넌트(CreateContent, form)로 변경하는 것이 목표
+- 기존 Content 컴포넌트는 목적에 맞게 명칭을 ReadContent로 변경, 생성의 목적을 달성할 수 있게끔 CreateContent 컴포넌트 생성
+- state 값(상황, 상태)에 따라 Props가 아닌 컴포넌트 자체를 변경해야함, 변수(_article)를 만들고 그 변수에 컴포넌트를 조건에 따라 저장하여 사용
+```js
+// App.js ...
+import ReadContent from './components/ReadContent'
+import CreateContent from './components/CreateContent'
+// App class ...
+  render() {
+    var _title, _desc, _article = null;
+    if (this.state.mode === "welcome") {
+      // ...
+      _article = <ReadContent title={_title} desc={_desc} />;
+    } else if (this.state.mode === "read") {
+      // ...
+      _article = <ReadContent title={_title} desc={_desc} />;
+    } else if (this.state.mode === "create") {
+      _article = <CreateContent />;
+    }
+    return (// 실제 랜더링 되는 부분
+      //... 
+      {_article}
+    );
+  }
+```
 
-### create 구현 : form & onSubmit 이벤트 & contents 변경
+### create 구현 : form
 - 입력 형태 창 form, html 기본 태그
   - 속성 action : 어디로 보낼지
   - 속성 method : post <- post로 보내야 데이터가 노출되지 않음
 - onSubmit form이 고유하게 가지는 기능을 이용하여 이벤트 생성
   - 기본적으로 페이지가 변경되지만 preventDefault를 이용하여 이를 방지
-1. 하위 컴포넌트(form 내용)에서 입력된 데이터를 어떻게 상위 컴포넌트로 넘겨 줄 것인가
-  - 프롭스로 전달받은 함수 인자에 결과 값 입력
-  - 데이터 확인 방법? 이벤트 내의 event의 target을 잘 분석해 볼것!
-2. 상위 컴포넌트에서 어떻게 데이터를 변경(state.content)할 것인가
-  - 이벤트 연결 후, 일단 잘 받아오는지 출력
-  - setState를 통해 데이터 변경
-  - 배열에 push 후, 데이터 변경(setState)은 성능 개선 시 까다로움
-  - concat 사용, 원본을 변경하지 않음(순수 함수...?)
+```js
+// CreateContent.js
+import React, { Component } from 'react';
 
-- UI에 영향을 주지않는다면 굳이 state 값으로 할 필요가 없음 
-  - 설정하게 되면 불필요한 랜더링이 발생할 수 있음
+class CreateContent extends Component {
+  render() {
+    console.log("CreateContent.js render()");
+    return (
+      <article>
+        <h3>Create</h3>
+        <form action="/create_process" method="post"
+          onSubmit={function (event) {
+            event.preventDefault();
+          }.bind(this)}
+        >
+          <p><input type="text" name="title" placeholder="title" /></p>
+          <p><textarea name="desc" placeholder="description"></textarea></p>
+          <input type="submit" />
+        </form>
+      </article>
+    );
+  }
+}
+
+export default CreateContent;
+```
+- ToDo : onSubmit(데이터 제출) 이후 과정을 구현
+  1. 두 컴포넌트 간의 이벤트 연결?
+  2. 하위 컴포넌트(form 내용)에서 입력된 데이터를 어떻게 상위 컴포넌트로 넘겨 줄 것인가?
+  3. 상위 컴포넌트에서 어떻게 데이터를 변경(state.content)할 것인가?
+
+### create 구현 : onSubmit 이벤트 & contents 변경
+- 두 컴포넌트 간의 이벤트 연결?
+  - CreateContent는 App에서 사용이 가능하게끔 onSubmit 이벤트 Props 제공하고 이를 받아와서 실행
+```js
+// App.js ... 
+} else if (this.state.mode === "create") {
+  _article = <CreateContent onSubmit={function (_title, _desc) {
+    alert("App.js CreateContent OnSubmit");
+  }.bind(this)} />;
+}
+```
+- 하위 컴포넌트(form 내용)에서 입력된 데이터를 어떻게 상위 컴포넌트로 넘겨 줄 것인가?
+  - 프롭스로 전달받은 함수(onSubmit)의 인자에 사용자가 입력한 값을 넣어 실행하여 데이터 전달
+  - 데이터 확인 방법? 이벤트 내의 event의 target을 분석해 볼것!
+```js
+// CreateContent.js
+<form action="/create_process" method="post"
+  onSubmit={function (event) {
+    event.preventDefault();
+    this.props.onSubmit(
+      event.target.title.value, 
+      event.target.desc.value
+    );
+  }.bind(this)}
+>
+```
+- 상위 컴포넌트에서 어떻게 데이터를 변경(state.contents 추가)할 것인가?
+  - App에 max_content_id라는 변수를 만들어서 현재 컨텐츠 Id의 최대 값을 저장해둠 
+  - (UI에 영향을 주지않는다면 굳이 state 값으로 할 필요가 없음, 설정하게 되면 불필요한 랜더링이 발생할 수 있음)
+  - push, setState를 통해 App의 contents Array에 데이터 추가
+```js
+// App.js ... 
+constructor(props) {
+  super(props);
+  this.max_content_id = 3;
+// render ...
+} else if (this.state.mode === "create") {
+  _article = <CreateContent onSubmit={function (_title, _desc) {
+    this.max_content_id++;
+    this.state.contents.push({
+      id: this.max_content_id, 
+      title: _title, 
+      desc:_desc
+    });
+    this.setState({ contents: this.state.contents });
+  }.bind(this)} />;
+}
+```
+- 배열에 push, setState 과정은 문제 없이 작동, but 데이터 변경(setState) 성능 개선 시 까다로움
+  - concat 사용!, 원본을 변경하지 않음(순수 함수...?)
+```js
+// App.js ... 
+} else if (this.state.mode === "create") {
+  _article = <CreateContent onSubmit={function (_title, _desc) {
+    this.max_content_id++;
+    this.setState({
+      contents: this.state.contents.concat({ 
+        id: this.max_content_id, 
+        title: _title, 
+        desc: _desc 
+      })
+    });
+  }.bind(this)} />;
+}
+```
 
 ### create 구현 : shouldComponentUpdate(newProps, newState)
 - push는 안 되고? concat은 되고? 왜???
-- 관련 없는 컴포넌트가 랜더링 되는 것은 비효율적!
-- 개발자가 특정 상황에 대해 컴포넌트가 랜더링 될지 결정할 수 있음
-- shouldComponentUpdate는 render이전에 실행
-- 리턴 값(boolean)을 통해 render의 실행 여부를 결정할 수 있음
-- shouldComponentUpdate 이전 값(this.props)에 접근할 수 있음
+- 개발자가 특정 상황에 대해 컴포넌트가 랜더링 될지 결정할 수 있음 (관련 없는 컴포넌트가 랜더링 되는 것은 비효율적이니까요 ... )
+- shouldComponentUpdate는 render이전에 실행되며, 리턴 값(boolean)을 통해 render의 실행 여부를 결정할 수 있음
+- shouldComponentUpdate는 2개의 매개변수(newProps, newState)를 가지며 이전 값(this.props)에 접근할 수 있음
+```js
+// TOC.js class ...
+  shouldComponentUpdate(newProps, newState) {
+    console.log("TOC.js shouldComponentUpdate()");
+    console.log(newProps.data);
+    console.log(this.props.data);
+    if(this.props.data === newProps.data) return false;
+    return true;
+  }
+```
 - push 방식으로 구현하게 되었을 경우, 이전 값(this.props)이 현재 값(newProps)와 같아짐
 
 ### create 구현 : immutable
 - 원본을 바꾸지 않는다 : 불변성(immutable)
-- var B = Array.from(A) A로 새로운 배열(B)를 만든다.
+- var B = Array.from(A) A로 새로운 배열(B)를 만든다. 내용만 같고 완정히 다름
 - var B = Object.assign({추가될 속성 정의},A) A로 새로운 객체(B)를 만든다.
 - immutable js 를 통해 원본을 바꾸지 않고 조작 가능 -> 일관된 코드를 사용할 수 있음
 
