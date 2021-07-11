@@ -1,7 +1,6 @@
 # opentutorials-react-app
 
-- [인프런(생활코딩 - React)](https://www.inflearn.com/course/react-%EC%83%9D%ED%99%9C%EC%BD%94%EB%94%A9/dashboard
-)
+- [인프런(생활코딩 - React)](https://www.inflearn.com/course/react-%EC%83%9D%ED%99%9C%EC%BD%94%EB%94%A9/dashboard)
 - [생활코딩 홈페이지](https://www.opentutorials.org/module/4058)
 - [Youtube divide](https://www.youtube.com/playlist?list=PLuHgQVnccGMCRv6f8H9K5Xwsdyg4sFSdi)
 - [Youtube long take](https://www.youtube.com/watch?v=mJ64l_iONqw&t=408s)
@@ -830,8 +829,8 @@ class Control extends Component {
 - state 값(상황, 상태)에 따라 Props가 아닌 컴포넌트 자체를 변경해야함, 변수(_article)를 만들고 그 변수에 컴포넌트를 조건에 따라 저장하여 사용
 ```js
 // App.js ...
-import ReadContent from './components/ReadContent'
 import CreateContent from './components/CreateContent'
+import ReadContent from './components/ReadContent'
 // App class ...
   render() {
     var _title, _desc, _article = null;
@@ -980,39 +979,265 @@ constructor(props) {
 ## Update & Delete 기능 구현
 ### update 구현
 - read, create의 결합
-- Content 결정 로직 부분을 함수로 분리, render 함수를 간결하게
-- 현재 선택된 Content 데이터를 업데이트 컴포넌트에 전달
+- UpdateContent.js 는 CreateContent.js를 복사하여 이름만 변경
+- App에서 mode state에 따라 _article 이 변경되게끔 추가 로직 작성
+```js
+// App.js ...
+import UpdateContent from './components/UpdateContent' 
+// render ...
+} else if (this.state.mode === "update") {
+  _article = <UpdateContent />;
+} 
+```
+- render 내부의 Content(_article) 결정 로직 부분을 함수(getContent)로 분리
+- 현재 컨텐츠 읽기 로직을 함수(getReadContent)로 분리, render 함수를 최대한 간결하게 작성
+```js
+// App.js ... 
+  getReadContent() {
+    for (var i = 0; i < this.state.contents.length; i++) {
+      var data = this.state.contents[i];
+      if (data.id === this.state.selected_content_id) return data;
+    }
+  }
+
+  getContent() {
+    var _title, _desc, _article = null;
+    if (this.state.mode === "welcome") {
+      _title = this.state.welcone.title;
+      _desc = this.state.welcone.desc;
+      _article = <ReadContent title={_title} desc={_desc} />;
+    } else if (this.state.mode === "read") {
+      var data = this.getReadContent();
+      _article = <ReadContent title={data.title} desc={data.desc} />;
+    } else if (this.state.mode === "create") {
+      _article = <CreateContent onSubmit={function (_title, _desc) {
+        this.max_content_id++;
+        this.setState({
+          contents: this.state.contents.concat({ id: this.max_content_id, title: _title, desc: _desc })
+        });
+      }.bind(this)} />;
+    } else if (this.state.mode === "update") {
+      _article = <UpdateContent />;
+    }
+    return _article;
+  }
+
+  render() {
+    console.log("App.js render()");
+    return (
+      <div className="App">
+        <Subject {/* ... */}/>
+        <TOC {/* ... */}/>
+        <Control {/* ... */}/>
+        {this.getContent()}
+      </div>
+    )
+  }
+```
+- UpdateContent가 실행될 때, 현재 선택된 Content 데이터를 UpdateContent에 전달
+```js
+// App.js ... getContent
+} else if (this.state.mode === "update") {
+  var data = this.getReadContent();
+  _article = <UpdateContent data={data} />;
+}
+```
 
 ### update 구현 : form
-- 받아온 데이터를 화면에 뿌려주고 수정할 수 있게 하기
-- value에 값을 넣어버리는 경우, props를 사용하기 때문에 변경이 불가능
+- 받아온 Content 데이터를 form에 전달해주고 수정할 수 있게 하기
+- value에 값을 props 값을 직접 넣어버리는 경우, props는 불변이기 때문에 오류 발생
+```js
+// UpdateContent.js ...
+  <p>
+    <input
+      type="text"
+      name="title"
+      placeholder="title"
+      value={this.props.data.title} // error
+    />
+  </p>
 ```
-Warning: You provided a `value` prop to a form field without an `onChange` handler. 
-This will render a read-only field. If the field should be mutable use `defaultValue`. Otherwise, set either `onChange` or `readOnly`.
+
+>Warning: You provided a `value` prop to a form field without an `onChange` handler. 
+>This will render a read-only field. If the field should be mutable use `defaultValue`. Otherwise, set either `onChange` or `readOnly`.
+
+- 변경 가능하게 state화 -> 그러나 여전히 readOnly로 수정이 불가능
+```js
+// UpdateContent.js ...
+  constructor(props) {
+    super(props);
+    this.state = {
+      title: this.props.data.title
+    }
+  }
+// ...
+  <p>
+    <input
+      type="text"
+      name="title"
+      placeholder="title"
+      value={this.state.title}
+    />
+  </p>
 ```
-- 변경 가능하게 state화 -> 그러나 여전히 readOnly
-  - onChange 함수를 통해 진행해야함 setState를 쓰는 이유와 유사한 느낌..?
-- 중복 코드 제거! 
-  - title, desc 대신 [e.target.name] 사용
-  - bind도 정리
+- input의 값이 변경 되었을때(이벤트 발생) state값이 변경이 되게해야함 
+- onChange 함수를 정의하여 state가 바로 변경 되게끔 함
+```js
+// UpdateContent.js ...
+  <form /* ... */ >
+    <p>
+      <input
+        type="text"
+        name="title"
+        placeholder="title"
+        value={this.state.title}
+        onChange={function (event) {
+          this.setState({ title: event.target.value })
+        }.bind(this)}
+      />
+    </p>
+    <p>
+      <textarea
+        name="desc"
+        placeholder="description"
+        value={this.state.desc}
+        onChange={function (event) {
+          this.setState({ desc: event.target.value })
+        }.bind(this)}
+      />
+    </p>
+    <input type="submit" />
+  </form>
+```
+- 하나씩 onChange를 정의해주는 것은 비효율적, inputFormHandler를 통해 모든 input을 관리
+  - title, desc 대신 [event.target.name] 사용
+- bind(this)도 반복됨으로 생성자 부분으로 옮기기
+```js
+// UpdateContent.js ...
+  constructor(props) {
+    super(props);
+    this.state = {
+      title: this.props.data.title,
+      desc: this.props.data.desc
+    }
+    this.inputFormHandler = this.inputFormHandler.bind(this);
+  }
+
+  inputFormHandler(event) {
+    this.setState({ [event.target.name]: event.target.value })
+  }
+  // ...
+  <form /* ... */ >
+    <p>
+      <input
+        type="text"
+        name="title"
+        placeholder="title"
+        value={this.state.title}
+        onChange={this.inputFormHandler}
+      />
+    </p>
+    <p>
+      <textarea
+        name="desc"
+        placeholder="description"
+        value={this.state.desc}
+        onChange={this.inputFormHandler}
+      />
+    </p>
+    <input type="submit" />
+  </form>
+```
 
 ### update 구현 : state 변경
-- 글의 고유 Id도 관리 input hidden 사용
+- 이전 시간에는 Props를 State로 만들고, 이 값을 Form과 동기화 시키는 방법을 진행
+- input type="hidden" 을 사용하여 글의 고유 ID도 보관
   - 진행하지 않아도 되지만 기본적인 구현에 충실 
-- 상위 컴포넌트 onSubmitComponent 구현
-  - immutable을 위해 원본 데이터 복사
+```js
+// UpdateContent.js ...
+  constructor(props) {
+    super(props);
+    this.state = {
+      id: this.props.data.id,
+      title: this.props.data.title,
+      desc: this.props.data.desc
+    }
+    this.inputFormHandler = this.inputFormHandler.bind(this);
+  }
+// ...
+  <form action="/update_process" method="post"
+    onSubmit={function (event) {
+      event.preventDefault();
+      this.props.onSubmit(// 상위 컴포넌트로 id, title, desc 입력값 넘겨주기
+        this.state.id,
+        this.state.title,
+        this.state.desc
+      );
+    }.bind(this)}
+  >
+    <input type="hidden" name="id" value={this.state.id} />
+    <p><input /* ... */ /></p>
+    <p><textarea /* ... */ /></p>
+    <input type="submit" />
+  </form>
+```
+- 상위 컴포넌트 onSubmit 구현
+  - immutable을 위해 원본 데이터 복사(Array.from) 
   - id 값이 같은 객체만 데이터 변경(setState)
-- 변경된 화면(read)으로 이동... 어떻게? mode, selected_content_id 변경!
+- 변경된 화면(read)으로 이동시키기 위해 mode를 selected_content_id 변경
+```js
+// App.js ... 
+  } else if (this.state.mode === "update") {
+    data = this.getReadContent();
+    _article = <UpdateContent
+      data={data}
+      onSubmit={function (_id, _title, _desc) {
+        var _contents = Array.from(this.state.contents);
+        for (var i = 0; i < _contents.length; i++) {
+          if (_contents[i].id === _id) {
+            _contents[i] = { id: _id, title: _title, desc: _desc }
+            break;
+          }
+        }
+        this.setState({ contents: _contents, mode: "read" })
+      }.bind(this)}
+    />;
+  }
+```
 
 ### delete 구현
-- read 상태에서 delete진행
-- 모드가 선택된 이후 바로 진행? 
+- 다른 기능(create와 update)의 경우,
+  1. 버튼 클릭에 의한 mode만 변경(**setState**)
+  2. 화면이 재 렌더링되며 getContent가 실행
+- 삭제, delete의 경우, 
+  1. 버튼이 클릭되면 content를 복사(_content)
+  2. selected_content_id 값을 가진 _content를 배열에서 삭제
+  3. content를 _content로, mode를 welcome로 변경(**setState**)
+  4. 화면이 재 렌더링되며 getContent가 실행
+```js
+// App.js ... 
+  <Control onChangeMode={function (_mode) {
+    if (_mode === "delete") {
+      if (window.confirm("really?")) {
+        var _contents = Array.from(this.state.contents);
+        for (var i = 0; i < _contents.length; i++) {
+          if (_contents[i].id === this.state.selected_content_id) {
+            _contents.splice(i, 1);
+            break;
+          }
+        }
+        this.setState({ contents: _contents, mode: "welcome" })
+        alert("deleted !");
+      }
+    } else this.setState({ mode: _mode })
+  }.bind(this)} />
+```
 
 ## 수업을 마치며
 - immutable js
 - react router
 - npm run eject
-- redux plugin
+- redux
 - react server side rendering
 - react native
 
